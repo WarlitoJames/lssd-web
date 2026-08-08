@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSSD — Los Santos Sheriff's Department</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060c08;--bg2:#07100a;--s1:#0a1410;--s2:#101d14;--s3:#162518;--s4:#1c2e1e;
+  --blue:#1a6b35;--blue2:#4db870;--blue3:#80d4a0;
+  --gold:#c8a84b;--gold2:#e8c870;
+  --tx:#d8f0e0;--tx2:#7aaa8a;--tx3:#3a6048;
+  --red:#e04040;--green:#30c870;
+  --border:#162818;--border2:#1e3822;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(26,107,53,.1) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 80%,rgba(200,168,75,.05) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.01) 40px,rgba(255,255,255,.01) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.01) 40px,rgba(255,255,255,.01) 41px);pointer-events:none;z-index:0;}
+
+/* NAV */
+.topnav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:rgba(6,8,13,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 40px;gap:0;}
+.topnav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue2),var(--gold2),var(--blue2),transparent);opacity:.5;}
+.nav-brand{display:flex;align-items:center;gap:14px;margin-right:auto;text-decoration:none;cursor:pointer;}
+.nav-seal{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#0a3a7a);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:900;color:var(--gold);letter-spacing:1px;box-shadow:0 0 0 3px rgba(200,168,75,.15);flex-shrink:0;}
+.nav-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1;}
+.nav-sub{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--tx3);letter-spacing:2px;margin-top:2px;}
+.nav-links{display:flex;align-items:center;gap:2px;}
+.nav-link{padding:8px 13px;font-size:13px;font-weight:600;color:var(--tx2);text-decoration:none;border-radius:4px;transition:color .15s,background .15s;cursor:pointer;border:none;background:transparent;}
+.nav-link:hover{color:var(--tx);background:var(--s2);}
+.nav-link.active{color:var(--blue2);}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:80px 40px 60px;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(26,107,53,.14) 0%,transparent 70%);pointer-events:none;}
+.hero-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.hero-lines::before,.hero-lines::after{content:'';position:absolute;width:1px;height:200%;background:linear-gradient(180deg,transparent,rgba(77,170,90,.12),transparent);transform:rotate(15deg);transform-origin:top center;}
+.hero-lines::before{left:20%;top:-50%;}
+.hero-lines::after{right:20%;top:-50%;}
+.hero-badge{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#051a0a);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 0 8px rgba(200,168,75,.1),0 0 60px rgba(29,111,219,.25);margin:0 auto 28px;animation:badgePulse 4s ease-in-out infinite;}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 8px rgba(200,168,75,.1),0 0 60px rgba(29,111,219,.25)}50%{box-shadow:0 0 0 14px rgba(200,168,75,.14),0 0 80px rgba(29,111,219,.38)}}
+.hero-badge-star{font-size:38px;line-height:1;}
+.hero-badge-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-top:2px;}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--blue2);letter-spacing:4px;margin-bottom:12px;opacity:0;animation:fadeUp .6s .2s forwards;}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,7vw,78px);font-weight:900;color:#fff;letter-spacing:3px;line-height:1;margin-bottom:6px;opacity:0;animation:fadeUp .6s .35s forwards;}
+.hero-title span{color:var(--blue2);}
+.hero-sub{font-family:'Barlow Condensed',sans-serif;font-size:clamp(14px,2vw,22px);font-weight:600;color:var(--gold2);letter-spacing:6px;margin-bottom:18px;opacity:0;animation:fadeUp .6s .45s forwards;}
+.hero-desc{font-size:15px;color:var(--tx2);max-width:500px;margin:0 auto 40px;line-height:1.7;opacity:0;animation:fadeUp .6s .55s forwards;}
+.hero-online{display:flex;align-items:center;justify-content:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx3);opacity:0;animation:fadeUp .6s .65s forwards;}
+.dot-online{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx3);letter-spacing:2px;animation:float 2.5s ease-in-out infinite;cursor:pointer;text-decoration:none;}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+
+/* HERO STAT PILLS */
+.hero-stats{display:flex;gap:14px;justify-content:center;margin-bottom:36px;flex-wrap:wrap;opacity:0;animation:fadeUp .6s .6s forwards;}
+.hstat{background:var(--s1);border:1px solid var(--border2);border-radius:6px;padding:10px 20px;text-align:center;}
+.hstat-v{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--blue2);line-height:1;}
+.hstat-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx3);letter-spacing:2px;margin-top:3px;}
+
+/* SECTIONS */
+section{position:relative;z-index:1;padding:80px 0;}
+.container{max-width:1160px;margin:0 auto;padding:0 40px;}
+.sec-hdr{text-align:center;margin-bottom:50px;}
+.sec-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--blue2);letter-spacing:3px;padding:4px 12px;border:1px solid rgba(77,159,255,.3);border-radius:20px;margin-bottom:12px;background:rgba(77,159,255,.06);}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(26px,4vw,42px);font-weight:900;color:#fff;letter-spacing:2px;margin-bottom:8px;}
+.sec-title span{color:var(--blue2);}
+.sec-desc{font-size:15px;color:var(--tx2);max-width:520px;margin:0 auto;line-height:1.7;}
+
+/* O NÁS */
+#onas{background:var(--bg2);}
+.onas-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;}
+.onas-text p{font-size:15px;color:var(--tx2);line-height:1.85;margin-bottom:16px;}
+.onas-text p:last-child{margin-bottom:0;}
+.onas-text strong{color:var(--blue2);}
+.onas-vals{display:flex;flex-direction:column;gap:12px;}
+.oval{background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--blue2);border-radius:6px;padding:18px 20px;display:flex;align-items:flex-start;gap:14px;transition:border-left-color .15s,transform .15s;}
+.oval:hover{border-left-color:var(--gold2);transform:translateX(4px);}
+.oval-ico{font-size:26px;flex-shrink:0;margin-top:2px;}
+.oval-t{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;margin-bottom:3px;letter-spacing:.5px;}
+.oval-d{font-size:13px;color:var(--tx2);line-height:1.5;}
+.onas-quote{margin-top:28px;background:linear-gradient(135deg,rgba(26,107,53,.14),rgba(10,20,16,.9));border:1px solid var(--border2);border-left:4px solid var(--gold2);border-radius:6px;padding:20px 24px;}
+.onas-quote blockquote{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--gold2);font-style:italic;line-height:1.4;margin-bottom:8px;}
+.onas-quote cite{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx3);letter-spacing:2px;}
+
+/* NEWS */
+#novinky{background:var(--bg);}
+.news-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.news-card{background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--blue2);border-radius:6px;padding:22px 24px;transition:border-left-color .15s,transform .15s;}
+.news-card:hover{border-left-color:var(--gold2);transform:translateY(-2px);}
+.ntag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:2px 8px;border-radius:3px;margin-bottom:9px;}
+.nt-info{background:rgba(77,159,255,.15);color:var(--blue2);}
+.nt-warn{background:rgba(224,64,64,.12);color:#ff8080;}
+.nt-op{background:rgba(200,168,75,.12);color:var(--gold2);}
+.nt-upd{background:rgba(48,200,112,.12);color:#80ffb8;}
+.news-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:#fff;margin-bottom:7px;line-height:1.2;}
+.news-body{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:11px;}
+.news-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx3);display:flex;gap:14px;}
+
+/* DIVIZE */
+#divize{background:var(--bg2);}
+.divize-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.div-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s,transform .2s;}
+.div-card:hover{border-color:var(--blue2);transform:translateY(-4px);}
+.div-head{padding:22px 22px 14px;border-bottom:1px solid var(--border);}
+.div-ico{font-size:32px;margin-bottom:10px;display:block;}
+.div-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:3px;}
+.div-abbr{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue2);letter-spacing:3px;}
+.div-body{padding:14px 22px 18px;}
+.div-desc{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:12px;}
+.div-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.dtag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;color:var(--tx3);background:var(--s2);border:1px solid var(--border2);padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+.div-status{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:3px;margin-bottom:10px;}
+.ds-active{background:rgba(48,200,112,.12);color:#80ffb8;border:1px solid rgba(48,200,112,.25);}
+.ds-recruit{background:rgba(200,168,75,.12);color:var(--gold2);border:1px solid rgba(200,168,75,.25);}
+.ds-closed{background:rgba(224,64,64,.1);color:#ff9090;border:1px solid rgba(224,64,64,.2);}
+
+/* STANICE */
+#stanice{background:var(--bg);}
+.stanice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.stanice-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .2s;}
+.stanice-card:hover{border-color:var(--blue2);transform:translateY(-3px);}
+.stanice-img{height:100px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;border-bottom:1px solid var(--border);}
+.stanice-img.s-davis{background:linear-gradient(135deg,rgba(26,107,53,.25),var(--s3));}
+.stanice-img.s-sandy{background:linear-gradient(135deg,rgba(160,120,40,.18),var(--s3));}
+.stanice-img.s-paleto{background:linear-gradient(135deg,rgba(30,80,140,.18),var(--s3));}
+.stanice-img.s-grapeseed{background:linear-gradient(135deg,rgba(80,140,50,.18),var(--s3));}
+.stanice-badge{position:absolute;top:10px;right:12px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;}
+.sb-hq{background:rgba(200,168,75,.2);color:var(--gold2);border:1px solid rgba(200,168,75,.3);}
+.sb-sub{background:rgba(77,159,255,.12);color:var(--blue2);border:1px solid rgba(77,159,255,.25);}
+.stanice-info{padding:16px 20px 18px;flex:1;}
+.stanice-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:2px;}
+.stanice-loc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue2);letter-spacing:2px;margin-bottom:10px;}
+.stanice-desc{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:12px;}
+.stanice-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.smr{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:7px 10px;}
+.smk{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--tx3);letter-spacing:1.5px;font-weight:600;margin-bottom:2px;}
+.smv{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--tx);}
+
+/* HODNOSTI */
+#hodnosti{background:var(--bg2);}
+.rtable-w{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.rtable{width:100%;border-collapse:collapse;}
+.rtable th{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:var(--tx2);letter-spacing:2px;text-transform:uppercase;padding:11px 18px;text-align:left;border-bottom:1px solid var(--border2);background:var(--s2);}
+.rtable td{padding:13px 18px;border-bottom:1px solid var(--border);font-size:14px;color:var(--tx);vertical-align:middle;}
+.rtable tr:last-child td{border-bottom:none;}
+.rtable tr:hover td{background:var(--s2);}
+.rb{display:inline-flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:.5px;}
+.rn{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--blue2);background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.2);padding:2px 7px;border-radius:3px;}
+.rd{font-size:12px;color:var(--tx2);}
+.r0{color:var(--gold2);}
+.r1{color:#c8c8f0;}
+.r2{color:var(--tx);}
+.r3{color:var(--tx2);}
+.r-sep td{background:var(--s2)!important;padding:5px 18px;}
+.r-sep-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;}
+
+/* VEDENI */
+#vedeni{background:var(--bg);}
+.ldiv{margin-bottom:36px;}
+.ldiv-hdr{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--blue2);letter-spacing:4px;text-transform:uppercase;padding-bottom:9px;border-bottom:1px solid var(--border2);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.ldiv-hdr::before{content:'';width:3px;height:14px;background:var(--blue2);border-radius:2px;flex-shrink:0;}
+.orow{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.ocard{background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .15s,transform .15s;}
+.ocard:hover{border-color:var(--blue2);transform:translateY(-4px);}
+.ocard.cmd{border-color:var(--gold);border-width:2px;}
+.ocard.cmd:hover{border-color:var(--gold2);box-shadow:0 8px 28px rgba(200,168,75,.12);}
+.ophoto{width:100%;height:130px;background:linear-gradient(135deg,var(--s2),var(--s3));display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;border-bottom:1px solid var(--border);}
+.ophoto::after{content:'';position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--s1));}
+.ophoto.gold-bg{background:linear-gradient(135deg,rgba(200,168,75,.12),var(--s3));}
+.oinfo{padding:12px 14px;}
+.oname{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:2px;}
+.orank{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--blue2);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;display:block;}
+.orank.gold{color:var(--gold2);}
+.ometa{display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--border);padding-top:7px;}
+.omr{display:flex;justify-content:space-between;align-items:center;}
+.omk{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx3);font-weight:600;letter-spacing:1px;}
+.omv{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx);font-weight:600;}
+.omv.blue{color:var(--blue2);}
+.omv.gold{color:var(--gold2);}
+
+/* DOKUMENTY */
+#dokumenty{background:var(--bg2);}
+.docs-g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.doc{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,background .15s;text-decoration:none;}
+.doc:hover{border-color:var(--blue2);background:var(--s2);}
+.doc-ico{font-size:22px;flex-shrink:0;width:32px;text-align:center;}
+.doc-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:2px;}
+.doc-info{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx3);}
+.dbadge{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;flex-shrink:0;letter-spacing:1px;}
+.db-n{background:rgba(48,200,112,.15);color:#80ffb8;border:1px solid rgba(48,200,112,.3);}
+.db-d{background:rgba(77,159,255,.1);color:var(--blue2);border:1px solid rgba(77,159,255,.2);}
+
+/* KONTAKTY */
+#kontakty{background:var(--bg);}
+.krow{display:grid;grid-template-columns:2fr 2fr 1fr 1.5fr 1.8fr;padding:10px 20px;border-bottom:1px solid var(--border);align-items:center;transition:background .1s;}
+.krow:hover{background:var(--s2);}
+.kname{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--tx);}
+.krank{font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;color:var(--blue2);}
+.kbadge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--tx2);}
+.kdiv{font-family:'Barlow',sans-serif;font-size:12px;color:var(--tx2);}
+.kdisc{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7289da;font-weight:600;}
+
+footer{background:var(--s1);border-top:1px solid var(--border2);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.foot-l{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--tx2);letter-spacing:2px;}
+.foot-r{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx3);text-align:right;line-height:1.9;}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .55s ease,transform .55s ease;}
+.reveal.visible{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="nav-brand" href="#">
+    <div class="nav-seal">LSSD</div>
+    <div><div class="nav-title">LOS SANTOS S.D.</div><div class="nav-sub">LAW ENFORCEMENT PORTAL</div></div>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#onas">O nás</a>
+    <a class="nav-link" href="#novinky">Novinky</a>
+    <a class="nav-link" href="#divize">Divize</a>
+    <a class="nav-link" href="#stanice">Stanice</a>
+    <a class="nav-link" href="#hodnosti">Hodnosti</a>
+    <a class="nav-link" href="#vedeni">Vedení</a>
+    <a class="nav-link" href="#dokumenty">Dokumenty</a>
+    <a class="nav-link" href="#kontakty">Kontakty</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+  <div class="hero-badge"><span class="hero-badge-star">⭐</span><span class="hero-badge-lbl">LSSD</span></div>
+  <div class="hero-eyebrow">Los Santos Sheriff's Department</div>
+  <h1 class="hero-title">DUTY · HONOR · <span>SERVICE</span></h1>
+  <div class="hero-sub">LOS SANTOS COUNTY · BLAINE COUNTY</div>
+  <p class="hero-desc">Interní portál Los Santos Sheriff's Department a Blaine County Sheriff's Office. Přístup k dokumentům, hodnostem, stanicím a divizím oddělení.</p>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-v">4</div><div class="hstat-l">STANICE</div></div>
+    <div class="hstat"><div class="hstat-v">6</div><div class="hstat-l">DIVIZE</div></div>
+    <div class="hstat"><div class="hstat-v">13</div><div class="hstat-l">HODNOSTÍ</div></div>
+    <div class="hstat"><div class="hstat-v">2026</div><div class="hstat-l">AKTIVNÍ</div></div>
+  </div>
+  <div class="hero-online"><span class="dot-online"></span>LSSD online · Davis HQ · Blaine County</div>
+  <a class="scroll-hint" href="#onas"><span>PROCHÁZET PORTÁL</span><span style="font-size:18px">↓</span></a>
+</section>
+
+<!-- O NÁS -->
+<section id="onas">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">🏛️ NAŠE ODDĚLENÍ</div>
+      <h2 class="sec-title">O <span>nás</span></h2>
+      <p class="sec-desc">Historie, mise a hodnoty Los Santos Sheriff's Department.</p>
+    </div>
+    <div class="onas-grid">
+      <div class="reveal">
+        <div class="onas-text">
+          <p>Los Santos Sheriff's Department (<strong>LSSD</strong>) je hlavní šerifský úřad pokrývající <strong>Los Santos County</strong> a společně s Blaine County Sheriff's Office (<strong>BCSO</strong>) také rozsáhlé venkovské oblasti státu San Andreas.</p>
+          <p>Naším posláním je chránit životy a majetek obyvatel, udržovat veřejný pořádek a prosazovat právo s maximálním důrazem na profesionalitu, integritu a respekt vůči komunitě. Každý Deputy přísahá, že bude sloužit s odvahou a čestností.</p>
+          <p>LSSD disponuje specializovanými divizi jako je <strong>SWAT</strong>, <strong>K9 Unit</strong>, <strong>FTO/ATO program</strong>, <strong>Detective Bureau</strong> a <strong>Highway Safety Unit</strong>. Velitelství sídlí v <strong>Davis HQ</strong>.</p>
+        </div>
+        <div class="onas-quote">
+          <blockquote>"Serving with honor, protecting with pride."</blockquote>
+          <cite>— LSSD departmental motto</cite>
+        </div>
+      </div>
+      <div class="onas-vals reveal">
+        <div class="oval"><span class="oval-ico">⚖️</span><div><div class="oval-t">Integrita</div><div class="oval-d">Každý důstojník jedná čestně a transparentně, bez ohledu na okolnosti.</div></div></div>
+        <div class="oval"><span class="oval-ico">🛡️</span><div><div class="oval-t">Ochrana komunity</div><div class="oval-d">Bezpečnost obyvatel Los Santos je naší nejvyšší prioritou při každém výjezdu.</div></div></div>
+        <div class="oval"><span class="oval-ico">🤝</span><div><div class="oval-t">Spolupráce</div><div class="oval-d">Úzce spolupracujeme s LSPD, BCSO a ostatními složkami IZS státu SA.</div></div></div>
+        <div class="oval"><span class="oval-ico">📚</span><div><div class="oval-t">Profesní rozvoj</div><div class="oval-d">FTO/ATO program zajišťuje nepřetržité vzdělávání a výcvik všech členů.</div></div></div>
+        <div class="oval"><span class="oval-ico">🎖️</span><div><div class="oval-t">Kariérní postup</div><div class="oval-d">Transparentní hodnostní systém od Deputy Trainee po Sheriff s jasnými podmínkami.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOVINKY -->
+<section id="novinky">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">📰 AKTUALIZOVÁNO 26. 02. 2026</div>
+      <h2 class="sec-title">Novinky &amp; <span>Oznámení</span></h2>
+      <p class="sec-desc">Aktuální informace, operační briefingy a departmentální oznámení pro všechny důstojníky.</p>
+    </div>
+    <div class="news-grid">
+      <div class="news-card reveal"><span class="ntag nt-warn">⚠ OPERAČNÍ ALERT</span><div class="news-title">Zvýšená aktivita ozbrojených skupin — Davis</div><div class="news-body">Hlídky v oblasti Davis a Grapeseed hlásí zvýšenou aktivitu ozbrojených skupin. Všechny hlídky mají být ve zvýšené pohotovosti. Taktika ve dvojicích.</div><div class="news-meta"><span>📅 26. 02. 2026</span><span>✍ Dep. Martinez</span></div></div>
+      <div class="news-card reveal"><span class="ntag nt-info">ℹ OZNÁMENÍ</span><div class="news-title">Nový protokol pro dopravní kontroly</div><div class="news-body">Od 1. 3. 2026 platí aktualizovaný protokol pro dopravní kontroly LSSD. Povinné použití MDT pro každou kontrolu SPZ. Výcvikové materiály jsou v sekci Dokumenty.</div><div class="news-meta"><span>📅 24. 02. 2026</span><span>✍ Lt. Rodriguez</span></div></div>
+      <div class="news-card reveal"><span class="ntag nt-op">🎖 POVÝŠENÍ</span><div class="news-title">Povýšení — únor 2026</div><div class="news-body">Gratulujeme: Dep. Sarah Mitchell → Senior Deputy, Dep. James Okafor → Senior Deputy III. Slavnostní ceremoniál proběhne 28. 2. v 18:00 na Davis HQ.</div><div class="news-meta"><span>📅 22. 02. 2026</span><span>✍ Sheriff Collins</span></div></div>
+      <div class="news-card reveal"><span class="ntag nt-upd">✔ AKTUALIZACE</span><div class="news-title">MDT v2.4 — nová sekce zákonů</div><div class="news-body">MDT systém aktualizován na v2.4. Přibyla kompletní sekce Californského trestního zákoníku v češtině. Záznamy nyní obsahují odkaz na příslušný paragraf.</div><div class="news-meta"><span>📅 20. 02. 2026</span><span>✍ IT Oddělení LSSD</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIZE -->
+<section id="divize">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">⚙️ SPECIALIZOVANÉ JEDNOTKY</div>
+      <h2 class="sec-title">Divize <span>LSSD</span></h2>
+      <p class="sec-desc">Specializované divize a jednotky Los Santos Sheriff's Department. Každá divize vyžaduje splnění specifických podmínek pro vstup.</p>
+    </div>
+    <div class="divize-grid">
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🔫</span>
+          <div class="div-name">SWAT</div>
+          <div class="div-abbr">SPECIAL WEAPONS AND TACTICS</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-recruit"><span>●</span> NÁBOR OTEVŘEN</span>
+          <div class="div-desc">Speciální zásahová jednotka pro hostage rescue, high-risk warrant execution a situace s aktivním střelcem. Vyžaduje min. hodnost Sergeant.</div>
+          <div class="div-tags"><span class="dtag">MIN. SGT.</span><span class="dtag">VÝCVIK 4W</span><span class="dtag">HVT</span></div>
+        </div>
+      </div>
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🐕</span>
+          <div class="div-name">K9 Unit</div>
+          <div class="div-abbr">CANINE UNIT</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-active"><span>●</span> AKTIVNÍ</span>
+          <div class="div-desc">Psovodi LSSD nasazeni při vyhledávání osob, drog, výbušnin a sledování stop. Spolupráce s celnicí a BCSO. Min. Deputy Sheriff.</div>
+          <div class="div-tags"><span class="dtag">MIN. DS</span><span class="dtag">CERTIFIKACE K9</span><span class="dtag">BCSO</span></div>
+        </div>
+      </div>
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🕵️</span>
+          <div class="div-name">Detective Bureau</div>
+          <div class="div-abbr">DB — KRIMINÁLNÍ ODDĚLENÍ</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-active"><span>●</span> AKTIVNÍ</span>
+          <div class="div-desc">Vyšetřování závažné trestné činnosti — vraždy, loupeže, organizovaný zločin. Detektivové v civilu, spolupráce s FIB. Min. Senior Deputy.</div>
+          <div class="div-tags"><span class="dtag">MIN. DS-BI</span><span class="dtag">CIVIL</span><span class="dtag">FIB</span></div>
+        </div>
+      </div>
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🛣️</span>
+          <div class="div-name">Highway Safety Unit</div>
+          <div class="div-abbr">HSU — DÁLNIČNÍ HLÍDKA</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-recruit"><span>●</span> NÁBOR OTEVŘEN</span>
+          <div class="div-desc">Kontrola dopravních přestupků, vysokorychlostní pronásledování, DUI kontroly a bezpečnost na dálnicích a venkovských cestách SA.</div>
+          <div class="div-tags"><span class="dtag">MIN. DS</span><span class="dtag">PIT MANUÁL</span><span class="dtag">DÁLNICE</span></div>
+        </div>
+      </div>
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🎓</span>
+          <div class="div-name">FTO / ATO Program</div>
+          <div class="div-abbr">FIELD TRAINING OFFICER</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-active"><span>●</span> AKTIVNÍ</span>
+          <div class="div-desc">Výcvik a certifikace nových Deputy Trainee. FTO instruktoři jsou zodpovědní za hodnocení a přechod Trainees na plný statut DS.</div>
+          <div class="div-tags"><span class="dtag">MIN. DS-BII</span><span class="dtag">CERTIFIKACE FTO</span><span class="dtag">VÝCVIK</span></div>
+        </div>
+      </div>
+      <div class="div-card reveal">
+        <div class="div-head">
+          <span class="div-ico">🚁</span>
+          <div class="div-name">Air Support Unit</div>
+          <div class="div-abbr">ASU — LETECKÁ PODPORA</div>
+        </div>
+        <div class="div-body">
+          <span class="div-status ds-closed"><span>●</span> UZAVŘENO</span>
+          <div class="div-desc">Letecká podpora pozemních hlídek pomocí vrtulníků. Vyhledávání osob, vzdušný dohled, přesuny do obtížně dostupných oblastí Blaine County.</div>
+          <div class="div-tags"><span class="dtag">MIN. SGT.</span><span class="dtag">PILOTNÍ LIC.</span><span class="dtag">BLAINE</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STANICE -->
+<section id="stanice">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">📍 SÍŤ STANIC</div>
+      <h2 class="sec-title">Stanice <span>LSSD &amp; BCSO</span></h2>
+      <p class="sec-desc">Rozmístění stanic a základen Los Santos Sheriff's Department a Blaine County Sheriff's Office napříč státem San Andreas.</p>
+    </div>
+    <div class="stanice-grid">
+      <div class="stanice-card reveal">
+        <div class="stanice-img s-davis">🏛️<span class="stanice-badge sb-hq">HLAVNÍ STANICE</span></div>
+        <div class="stanice-info">
+          <div class="stanice-name">Davis Headquarters</div>
+          <div class="stanice-loc">📍 DAVIS · LOS SANTOS</div>
+          <div class="stanice-desc">Hlavní velitelství LSSD. Sídlo Sherifa, Undersherifa a celého Executive Staff. Nachází se zde MDT centrum, vazební cely, briefingová místnost a arzenál.</div>
+          <div class="stanice-meta">
+            <div class="smr"><div class="smk">ODDĚLENÍ</div><div class="smv">LSSD</div></div>
+            <div class="smr"><div class="smk">RADIO</div><div class="smv">CH. 1</div></div>
+            <div class="smr"><div class="smk">VELITEL</div><div class="smv">Sheriff Collins</div></div>
+            <div class="smr"><div class="smk">STATUS</div><div class="smv" style="color:var(--green)">24/7</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="stanice-card reveal">
+        <div class="stanice-img s-sandy">🏜️<span class="stanice-badge sb-sub">BCSO STANICE</span></div>
+        <div class="stanice-info">
+          <div class="stanice-name">Sandy Shores Station</div>
+          <div class="stanice-loc">📍 SANDY SHORES · BLAINE COUNTY</div>
+          <div class="stanice-desc">Hlavní základna Blaine County Sheriff's Office pokrývající východní část Blaine County. Zodpovídá za Sandy Shores, Alamo Sea a okolní pouštní oblasti.</div>
+          <div class="stanice-meta">
+            <div class="smr"><div class="smk">ODDĚLENÍ</div><div class="smv">BCSO</div></div>
+            <div class="smr"><div class="smk">RADIO</div><div class="smv">CH. 2</div></div>
+            <div class="smr"><div class="smk">OBLAST</div><div class="smv">Blaine E.</div></div>
+            <div class="smr"><div class="smk">STATUS</div><div class="smv" style="color:var(--green)">24/7</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="stanice-card reveal">
+        <div class="stanice-img s-paleto">🌊<span class="stanice-badge sb-sub">BCSO STANICE</span></div>
+        <div class="stanice-info">
+          <div class="stanice-name">Paleto Bay Station</div>
+          <div class="stanice-loc">📍 PALETO BAY · BLAINE COUNTY</div>
+          <div class="stanice-desc">Severní stanice BCSO pokrývající Paleto Bay, Chiliad Mountain State Wilderness a pobřežní oblast. Spolupráce s Coast Guard při námořních incidentech.</div>
+          <div class="stanice-meta">
+            <div class="smr"><div class="smk">ODDĚLENÍ</div><div class="smv">BCSO</div></div>
+            <div class="smr"><div class="smk">RADIO</div><div class="smv">CH. 3</div></div>
+            <div class="smr"><div class="smk">OBLAST</div><div class="smv">Blaine N.</div></div>
+            <div class="smr"><div class="smk">STATUS</div><div class="smv" style="color:var(--gold2)">OMEZENÝ</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="stanice-card reveal">
+        <div class="stanice-img s-grapeseed">🌾<span class="stanice-badge sb-sub">BCSO STANICE</span></div>
+        <div class="stanice-info">
+          <div class="stanice-name">Grapeseed Station</div>
+          <div class="stanice-loc">📍 GRAPESEED · BLAINE COUNTY</div>
+          <div class="stanice-desc">Venkovská stanice BCSO pro oblast Grapeseed a Grand Senora Desert. Pokrývá zemědělské oblasti a dálnici Route 1. Malá posádka, výjezdy na vyžádání.</div>
+          <div class="stanice-meta">
+            <div class="smr"><div class="smk">ODDĚLENÍ</div><div class="smv">BCSO</div></div>
+            <div class="smr"><div class="smk">RADIO</div><div class="smv">CH. 2</div></div>
+            <div class="smr"><div class="smk">OBLAST</div><div class="smv">Grapeseed</div></div>
+            <div class="smr"><div class="smk">STATUS</div><div class="smv" style="color:var(--gold2)">OMEZENÝ</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HODNOSTI -->
+<section id="hodnosti">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">🏅 HIERARCHIE</div>
+      <h2 class="sec-title">Hodnosti &amp; <span>Struktura LSSD</span></h2>
+      <p class="sec-desc">Kompletní hodnostní žebříček od Sheriff (12) po Deputy Trainee (0).</p>
+    </div>
+    <div class="rtable-w reveal">
+      <table class="rtable">
+        <thead><tr><th>Hodnost</th><th>Zkratka</th><th>Úroveň</th><th>Popis</th></tr></thead>
+        <tbody>
+          <tr class="r-sep"><td colspan="4"><span class="r-sep-lbl" style="color:var(--gold2)">★ Executive Staff</span></td></tr>
+          <tr><td><span class="rb r0">★★★★★ Sheriff</span></td><td><span class="rn">Shr.</span></td><td style="color:var(--gold2);font-weight:700">12</td><td class="rd">Nejvyšší velitel LSSD a BCSO. Zodpovídá za celkovou politiku, strategii a vedení oddělení.</td></tr>
+          <tr><td><span class="rb r0">★★★★ Undersheriff</span></td><td><span class="rn">U.Shr.</span></td><td style="color:var(--gold2);font-weight:700">11</td><td class="rd">Přímý zástupce Sherifa. Zodpovídá za chod oddělení v jeho nepřítomnosti.</td></tr>
+          <tr><td><span class="rb r0">★★★ Assistant Sheriff</span></td><td><span class="rn">A.Shr.</span></td><td style="color:var(--gold2);font-weight:700">10</td><td class="rd">Asistent Sherifa. Řídí přidělené divize a zastupuje vyšší velení.</td></tr>
+          <tr><td><span class="rb r1">★★ Division Chief</span></td><td><span class="rn">D.Chief</span></td><td style="color:var(--blue2);font-weight:700">9</td><td class="rd">Velitel divize. Zodpovídá za specifické operační oblasti oddělení.</td></tr>
+          <tr class="r-sep"><td colspan="4"><span class="r-sep-lbl" style="color:var(--blue2)">❙ Command Staff</span></td></tr>
+          <tr><td><span class="rb r1">★ Commander</span></td><td><span class="rn">CMD</span></td><td style="color:var(--blue2);font-weight:700">8</td><td class="rd">Velitel operační oblasti. Koordinuje Captainy a Lieutenanty.</td></tr>
+          <tr><td><span class="rb r1">❙❙ Captain</span></td><td><span class="rn">Capt.</span></td><td style="color:var(--blue2);font-weight:700">7</td><td class="rd">Velitel stanice nebo operativní skupiny. Schvaluje operační plány.</td></tr>
+          <tr class="r-sep"><td colspan="4"><span class="r-sep-lbl" style="color:var(--tx)">≋ Supervisor Staff</span></td></tr>
+          <tr><td><span class="rb r2">❙ Lieutenant</span></td><td><span class="rn">Lt.</span></td><td style="font-weight:700">6</td><td class="rd">Velí skupině Sergeantů. Zodpovídá za denní provoz v přidělené oblasti.</td></tr>
+          <tr><td><span class="rb r2">≋ Sergeant</span></td><td><span class="rn">Sgt.</span></td><td style="font-weight:700">5</td><td class="rd">Velí hlídce. První nadřízený Deputies na ulici. Přiděluje úkoly.</td></tr>
+          <tr class="r-sep"><td colspan="4"><span class="r-sep-lbl" style="color:var(--tx2)">⌃ Field Staff</span></td></tr>
+          <tr><td><span class="rb r3">⌃ Deputy Sheriff Master FTO</span></td><td><span class="rn">DS-MFTO</span></td><td style="color:var(--tx2);font-weight:700">4</td><td class="rd">Hlavní Field Training Officer. Certifikuje nové FTO instruktory a dohlíží na výcvikový program.</td></tr>
+          <tr><td><span class="rb r3">⌃ Deputy Sheriff Bonus II</span></td><td><span class="rn">DS-BII</span></td><td style="color:var(--tx2);font-weight:700">3</td><td class="rd">Zkušený Deputy s bonusovým označením. Může vést menší skupiny a mentorovat juniory.</td></tr>
+          <tr><td><span class="rb r3">⌃ Deputy Sheriff Bonus I</span></td><td><span class="rn">DS-BI</span></td><td style="color:var(--tx2);font-weight:700">2</td><td class="rd">Deputy s bonusovým označením. Plně certifikovaný, aktivní při výcviku nových členů.</td></tr>
+          <tr><td><span class="rb r3">Deputy Sheriff</span></td><td><span class="rn">DS</span></td><td style="color:var(--tx3);font-weight:700">1</td><td class="rd">Standardní hlídkující Deputy. Plná práva pro hlídkování, zatčení a provoz MDT.</td></tr>
+          <tr><td><span class="rb r3">Deputy Trainee</span></td><td><span class="rn">DT</span></td><td style="color:var(--tx3);font-weight:700">0</td><td class="rd">Nový člen na výcviku. Pracuje pod dohledem FTO instruktora.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- VEDENI -->
+<section id="vedeni">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">⭐ VELITELSKÝ SBOR</div>
+      <h2 class="sec-title">Hierarchie <span>Vedení</span></h2>
+      <p class="sec-desc">Struktura velení Los Santos Sheriff's Department — od Sheriff po Sergeants.</p>
+    </div>
+    <div class="ldiv reveal">
+      <div class="ldiv-hdr">Executive Staff — Vrchní velení LSSD</div>
+      <div class="orow">
+        <div class="ocard cmd"><div class="ophoto gold-bg">👮</div><div class="oinfo"><div class="oname">Dominic Collins</div><span class="orank gold">⭐⭐⭐⭐ Sheriff</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv gold">#2001</span></div><div class="omr"><span class="omk">DIVIZE</span><span class="omv">HSU, DB</span></div><div class="omr"><span class="omk">NÁŠIVKY</span><span class="omv gold">Sheriff ★</span></div></div></div></div>
+        <div class="ocard cmd"><div class="ophoto gold-bg">👮‍♀️</div><div class="oinfo"><div class="oname">Zoe Night</div><span class="orank gold">⭐⭐⭐ Undersheriff</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv gold">#2002</span></div><div class="omr"><span class="omk">DIVIZE</span><span class="omv">FTO/ATO, K9</span></div><div class="omr"><span class="omk">NÁŠIVKY</span><span class="omv gold">Sheriff ★</span></div></div></div></div>
+        <div class="ocard cmd"><div class="ophoto gold-bg">👮</div><div class="oinfo"><div class="oname">Elwis Harney</div><span class="orank gold">⭐⭐⭐ Asst. Sheriff</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv gold">#2003</span></div><div class="omr"><span class="omk">DIVIZE</span><span class="omv" style="color:var(--tx3)">Nepřiřazeno</span></div><div class="omr"><span class="omk">NÁŠIVKY</span><span class="omv">Standardní</span></div></div></div></div>
+        <div class="ocard cmd"><div class="ophoto gold-bg" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank gold">★★ Division Chief</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#2004</span></div><div class="omr"><span class="omk">DIVIZE</span><span class="omv" style="color:var(--tx3)">Nepřiřazeno</span></div></div></div></div>
+        <div class="ocard cmd"><div class="ophoto gold-bg" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank gold">⭐⭐ Commander</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#2005</span></div><div class="omr"><span class="omk">DIVIZE</span><span class="omv" style="color:var(--tx3)">Nepřiřazeno</span></div></div></div></div>
+      </div>
+    </div>
+    <div class="ldiv reveal">
+      <div class="ldiv-hdr">Command Staff — Captains &amp; Lieutenants</div>
+      <div class="orow">
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">❙❙ Captain</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1006</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">❙❙ Captain</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1007</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">❙ Lieutenant</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1008</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.1),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">❙ Lieutenant</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1009</span></div></div></div></div>
+      </div>
+    </div>
+    <div class="ldiv reveal">
+      <div class="ldiv-hdr">Supervisor Staff — Sergeants</div>
+      <div class="orow">
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.06),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">≋ Sergeant II</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1010</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.06),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">≋ Sergeant II</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1011</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.06),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">≋ Sergeant I</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1012</span></div></div></div></div>
+        <div class="ocard"><div class="ophoto" style="background:linear-gradient(135deg,rgba(77,159,255,.06),var(--s3));">🕶️</div><div class="oinfo"><div class="oname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><span class="orank">≋ Sergeant I</span><div class="ometa"><div class="omr"><span class="omk">BADGE</span><span class="omv blue">#1013</span></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOKUMENTY -->
+<section id="dokumenty">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">📁 INTERNÍ DOKUMENTY</div>
+      <h2 class="sec-title">Dokumenty &amp; <span>Formuláře</span></h2>
+      <p class="sec-desc">Standardní operační postupy, žádosti, formuláře a výcvikové materiály pro všechny důstojníky.</p>
+    </div>
+    <div class="docs-g reveal">
+      <a class="doc" href="#"><span class="doc-ico">🎓</span><div><div class="doc-name">Výcvikový program Deputy Trainee</div><div class="doc-info">Aktualizováno: 01.02.2026 · PDF</div></div><span class="dbadge db-n">NOVÉ</span></a>
+      <a class="doc" href="https://leginfo.legislature.ca.gov/" target="_blank"><span class="doc-ico">📖</span><div><div class="doc-name">Californský trestní zákoník</div><div class="doc-info">leginfo.legislature.ca.gov · Odkaz</div></div><span class="dbadge db-d">WEB</span></a>
+      <a class="doc" href="#kontakty"><span class="doc-ico">📞</span><div><div class="doc-name">Kontakty vedení LSSD</div><div class="doc-info">Interní adresář · Web sekce</div></div><span class="dbadge db-n">WEB</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- KONTAKTY -->
+<section id="kontakty">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-tag">📞 INTERNÍ ADRESÁŘ</div>
+      <h2 class="sec-title">Kontakty <span>Vedení LSSD</span></h2>
+      <p class="sec-desc">Přímé kontakty na velitelský sbor LSSD. Data jsou interní — nepřeposílat mimo oddělení.</p>
+    </div>
+    <div class="reveal" style="background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1.5fr 1.8fr;padding:10px 20px;font-family:JetBrains Mono,monospace;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;background:var(--s2);border-bottom:1px solid var(--border2);">
+        <span>Jméno</span><span>Hodnost</span><span>Badge</span><span>Divize</span><span>Discord</span>
+      </div>
+      <div style="padding:6px 20px 3px;font-family:JetBrains Mono,monospace;font-size:8px;font-weight:700;color:var(--gold2);letter-spacing:2px;background:rgba(200,168,75,.05);border-bottom:1px solid var(--border);">★ EXECUTIVE STAFF</div>
+      <div class="krow"><div class="kname">Dominic Collins</div><div class="krank" style="color:var(--gold2)">Sheriff</div><div class="kbadge">#2001</div><div class="kdiv">HSU, DB</div><div class="kdisc">warlitojamescz</div></div>
+      <div class="krow"><div class="kname">Zoe Night</div><div class="krank" style="color:var(--gold2)">Undersheriff</div><div class="kbadge">#2002</div><div class="kdiv">FTO/ATO, K9</div><div class="kdisc">zoe998899</div></div>
+      <div class="krow"><div class="kname">Elwis Harney</div><div class="krank" style="color:var(--gold2)">Assistant Sheriff</div><div class="kbadge">#2003</div><div class="kdiv" style="color:var(--tx3)">Nepřiřazeno</div><div class="kdisc">stopadesatosum</div></div>
+      <div class="krow"><div class="kname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><div class="krank">Division Chief</div><div class="kbadge">#2004</div><div class="kdiv" style="color:var(--tx3)">—</div><div class="kdisc" style="color:var(--tx3)">—</div></div>
+      <div class="krow" style="border-bottom:none;"><div class="kname" style="color:var(--tx3);font-style:italic;">— Volná pozice —</div><div class="krank">Commander</div><div class="kbadge">#2005</div><div class="kdiv" style="color:var(--tx3)">—</div><div class="kdisc" style="color:var(--tx3)">—</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-l">LOS SANTOS SHERIFF'S DEPARTMENT</div>
+  <div class="foot-r">Interní portál · Pouze pro oprávněné osoby<br>© 2026 Los Santos Sheriff's Department · Davis HQ · Los Santos, SA<br>Všechna práva vyhrazena — LSSD 2026</div>
+</footer>
+
+<script>
+'use strict';
+
+/* Scroll reveal */
+const revEls = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); } });
+}, {threshold: 0.12, rootMargin: '-40px 0px'});
+revEls.forEach(el => ro.observe(el));
+
+/* Smooth scroll with nav offset */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', function(ev) {
+    const t = document.querySelector(this.getAttribute('href'));
+    if(t){ ev.preventDefault(); window.scrollTo({top: t.offsetTop - 68, behavior: 'smooth'}); }
+  });
+});
+
+/* Nav highlight */
+const secs = document.querySelectorAll('section[id]');
+const nls = document.querySelectorAll('.nav-link');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if(en.isIntersecting) nls.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
+  });
+}, {threshold: 0.3, rootMargin: '-60px 0px 0px 0px'});
+secs.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
